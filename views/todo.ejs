@@ -6,7 +6,27 @@
     <link rel="stylesheet" href="/static/stylesheets/styles.css" type="text/css"/>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet"/>
     <!--<link href="https://use.fontawesome.com/release/v5.8.2/css/all.css" rel="stylesheet"/> -->
-
+    <script>
+        function done(todoTag){
+            const _id = todo.getAttribute("data-todoId");
+            console.log(_id);
+            fetch('/',{
+                method: 'PUT',
+                body: JSON.stringify({id:_id})
+            })
+            .then((response)=>response.json())
+            .then((result)=>{
+                console.log('sucess:',result);
+            })
+            .catch((error)=>{
+                console.error('error:',error);
+            });
+        }
+        function deleteItem(todoTag){
+            const id = todo.getAttribute("data-todoId");
+            console.log(id);
+        }
+    </script>
 </head> 
 <body>
     <div class="todo-container">
@@ -22,19 +42,23 @@
                 </button>
             </form>
             <ul class="todo-list">
-                <li class="todo-list-item">
-                    <div class="todo-list-item-name">
-                        first task
-                    </div>
-                    <a href="" class="edit">
-                        edit
-                        <!--<i class="fa-solid fa-pen-to-square" />-->
-                    </a>
-                    <a href="" class="remove">
-                        remove
-                        <!--<i class="fa-regular fa-circle-xmark" />-->
-                    </a>
-                </li>
+                <% todoList.forEach(function(todo){ %>
+                    <li class="todo-list-item">
+                        <div class="todo-list-item-name">
+                            <%= todo.todo %>
+                        </div>
+                        <button data-todoId=""="<%= todo._id %>" class="remove" onclick="done(this)">
+                            remove
+                            <!--<i class="fa-regular fa-circle-xmark" />-->
+                        </button>
+                        <button data-todoId=""="<%= todo._id %>" class="edit" onclick="deleteItem(this)">
+                            edit
+                            <!--<i class="fa-solid fa-pen-to-square" />-->
+                        </button>
+                        
+                    </li>
+                <% }) %>
+                
             </ul>
         </div>
     </div>
