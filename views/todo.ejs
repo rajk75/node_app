@@ -8,33 +8,45 @@
     <!--<link href="https://use.fontawesome.com/release/v5.8.2/css/all.css" rel="stylesheet"/> -->
     <script>
         function done(todoTag){
-            const _id = todo.getAttribute("data-todoId");
+            const _id = todoTag.getAttribute("data-todoId");
             console.log(_id);
-            fetch('/',{
+            fetch('/done',{
                 method: 'PUT',
-                body: JSON.stringify({id:_id})
-            })
-            .then((response)=>response.json())
-            .then((result)=>{
-                console.log('sucess:',result);
+                body: JSON.stringify({id:`${_id}`}),
+                headers:{
+                    "Content-Type": "application/json",
+                }
             })
             .catch((error)=>{
-                console.error('error:',error);
+                console.error('Error:',error);
             });
         }
         function deleteItem(todoTag){
-            const id = todo.getAttribute("data-todoId");
-            console.log(id);
+            const _id = todoTag.getAttribute("data-todoId");
+            console.log(_id);
+            fetch(`/delete/${_id}`,{
+                method: 'DELETE',
+                headers:{
+                    "Content-Type": "application/json",
+                }
+            })
+            .catch((error)=>{
+                console.error('Error:',error);
+            });
         }
     </script>
 </head> 
 <body>
     <div class="todo-container">
         <h2>
+            <%= comicData.safe_title %>
+        </h2>
+        <img src="<%= comicData.img %>" alt="comicData.alt" width="500" height="500"/>
+        <h2>
             Todo Items
         </h2>
         <div class="todo">
-            <form action="/" method="POST" class="todo-header">
+            <form action="/create" method="POST" class="todo-header">
                 <input type="text" name="content"/>
                 <button type="submit">
                     submit
@@ -44,14 +56,20 @@
             <ul class="todo-list">
                 <% todoList.forEach(function(todo){ %>
                     <li class="todo-list-item">
-                        <div class="todo-list-item-name">
-                            <%= todo.todo %>
-                        </div>
-                        <button data-todoId=""="<%= todo._id %>" class="remove" onclick="done(this)">
+                        <% if(todo.done){ %>
+                            <div class="todo-list-item-name strike-through">
+                                <%= todo.todo %>
+                            </div>
+                        <% } else { %>
+                            <div class="todo-list-item-name">
+                                <%= todo.todo %>
+                            </div>
+                        <% } %>
+                        <button data-todoId="<%= todo._id %>" class="remove" onclick="done(this)">
                             remove
                             <!--<i class="fa-regular fa-circle-xmark" />-->
                         </button>
-                        <button data-todoId=""="<%= todo._id %>" class="edit" onclick="deleteItem(this)">
+                        <button data-todoId="<%= todo._id %>" class="edit" onclick="deleteItem(this)">
                             edit
                             <!--<i class="fa-solid fa-pen-to-square" />-->
                         </button>

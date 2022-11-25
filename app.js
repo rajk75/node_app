@@ -1,9 +1,14 @@
 var express = require('express');
 var mongoose = require('mongoose')
 var app = express();
+var axios = require('axios').default;
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.json());
 
 app.use('/static', express.static("public"));
-app.use(express.urlencoded({ extended: true}))
+
 app.set("view engine", "ejs");
 const Todo = require('./models/todo.model');
 const mongoDB = 'mongodb+srv://rajkotak:raj1234@cluster0.x87cxkd.mongodb.net/?retryWrites=true&w=majority'
@@ -14,17 +19,20 @@ let db=mongoose.connection;
 db.on('error', console.error.bind(console, "MongoDb connection error:"))
 
 app.get('/', function(req, res){
-    Todo.find(function(err,todo){
-        console.log(todo)
-        if(err){
-            res.json({"Error:":err})
-        }else{
-            res.render('todo.ejs', {todoList:todo});
-        }
+    axios.get('https://xkcd.com/info.0.json').then(function(response){
+        Todo.find(function(err,todo){
+            if(err){
+                res.json({"Error:":err})
+            }else{
+                res.render('todo.ejs', {todoList:todo, comicData: comicData});
+            }
+        })
+    }).catch(function(error){
+        res.json({"error:":error})
     })
 })
 //creates item in db
-app.post('/', (req, res) =>{
+app.post('/create', (req, res) =>{
     let newTodo = new Todo({
         todo: req.body.content,
         done: false
@@ -39,39 +47,39 @@ app.post('/', (req, res) =>{
     })
 })
 //modifies item in db
-app.put('/',(req, res) => {
+app.put('/done',(req, res) => {
    let id = req.body.id;
-   let err={}
+   let err=null
    console.log(id)
    if(typeof id === "string"){
+    Todo.updateOne({_id: id}, {done:true},function(error){
+        if(error){
+            err = error
+        }
+    })
+} else if (typeof id === "object"){
+    id.forEach(ID => {
         Todo.updateOne({_id: id}, {done:true},function(error){
             if(error){
                 err = error
             }
         })
-   } else if (typeof id === "object"){
-        id.forEach(ID => {
-            Todo.updateOne({_id: id}, {done:true},function(error){
-                if(error){
-                    err = error
-                }
-            })
-        });
-   }
+    })
+}
    if(err){
         res.json({"Error:": err}) 
    } else{
         res.redirect('/');
    }
 })
-app.delete('/',(req, res) => {
-    let id = req.body.check;
-    let err={}
+app.delete('/delete/:id',(req, res) => {
+    let id = req.params.id;
+    let err;
     if(typeof id === "string"){
          Todo.deleteOne({_id: id}, function(error){
-             if(error){
-                 err = error
-             }
+            if(error){
+                err = error
+            }
          })
     }else if (typeof id === "object"){
         id.forEach(ID => {
@@ -80,10 +88,10 @@ app.delete('/',(req, res) => {
                     err = error
                 }
             })
-        });
+        })
    }
     if(err){
-         res.json({"Error:": err}) 
+        res.json({"Error:": err}) 
     }else{
         res.redirect('/');
    }
